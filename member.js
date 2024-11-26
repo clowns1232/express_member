@@ -8,8 +8,44 @@ let id = 1;
 // middleware
 app.use(express.json());
 
+const checkId = (userId) => {
+  let loginObj = {};
+  db.forEach((user) => {
+    if (user.userId === userId) {
+      loginObj = user;
+      return;
+    }
+  });
+
+  return loginObj;
+};
+
+const isEmpty = (obj = {}) => {
+  return Object.keys(obj).length === 0;
+};
+
 // 로그인
-app.post("/login", (req, res) => {});
+app.post("/login", (req, res) => {
+  const { userId, password } = req.body;
+  const loginUserObj = checkId(userId);
+  console.log(loginUserObj);
+
+  if (isEmpty(loginUserObj)) {
+    res.status(200).json({
+      message: "해당 ID가 없습니다.",
+    });
+  } else {
+    if (loginUserObj.password === password) {
+      res.status(200).json({
+        message: `${loginUserObj.name}님 환영합니다.`,
+      });
+    } else {
+      res.status(200).json({
+        message: "password가 틀렸습니다",
+      });
+    }
+  }
+});
 
 // 회원가입
 app.post("/join", (req, res) => {
@@ -19,7 +55,7 @@ app.post("/join", (req, res) => {
   }
 
   db.set(id, {
-    userId: id,
+    id,
     ...req.body,
   });
   id += 1;
@@ -40,10 +76,7 @@ app.route("/users/:id").get((req, res) => {
     return;
   }
 
-  res.status(200).json({
-    userId: user.userId,
-    name: user.name,
-  });
+  res.status(200).json(user);
 });
 
 // 회원 개별 탈퇴
